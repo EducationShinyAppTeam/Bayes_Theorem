@@ -1,0 +1,67 @@
+/*.skin-blue .main-header>.navbar {
+background-color: #1E407C;
+}
+.content-wrapper,.right-side {
+background-color: white;
+}
+.skin-blue .main-header .logo {
+background-color: #1E407C;
+color: white;
+}
+.skin-blue .main-header .logo:hover {
+background-color: black;
+}
+aside.main-sidebar {
+background-color: black !important;
+}
+.main-header .logo {
+font-family: "Georgia", Times, "Times New Roman", serif;
+font-weight: bold;
+font-size: 15px;
+}*/
+.btn-myClass {
+    background-color: #000000;
+    border: none;
+    color: white;
+}
+
+#go,#new, #goover,#ques, #show_ans{
+  background-color: #337ab7;
+  color:#FFFFFF;
+}
+.js-irs-0 .irs-bar {
+border-top-color: #337ab7;
+border-bottom-color: #337ab7;
+} 
+
+.js-irs-0 .irs-bar-edge {
+border-color: #337ab7;
+}
+
+.js-irs-0 .irs-single, .js-irs-0 .irs-bar-edge, .js-irs-0 .irs-bar {
+background: #337ab7;
+}
+.js-irs-1 .irs-bar {
+border-top-color: #337ab7;
+border-bottom-color: #337ab7;
+} 
+
+.js-irs-1 .irs-bar-edge {
+border-color: #337ab7;
+}
+
+.js-irs-1 .irs-single, .js-irs-1 .irs-bar-edge, .js-irs-1 .irs-bar {
+background: #337ab7;
+}
+.js-irs-2 .irs-bar {
+border-top-color: #337ab7;
+border-bottom-color: #337ab7;
+} 
+
+.js-irs-2 .irs-bar-edge {
+border-color: #337ab7;
+}
+
+.js-irs-2 .irs-single, .js-irs-2 .irs-bar-edge, .js-irs-2 .irs-bar {
+background: #337ab7;
+}
