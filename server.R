@@ -2,6 +2,8 @@ library(shiny)
 library(shinydashboard)
 library(shinyBS)
 library(shinyWidgets)
+library(dplyr)
+library(shinycssloaders)
 
 bank <- read.csv("questionbank.csv")
 bank = data.frame(lapply(bank, as.character), stringsAsFactors = FALSE)
@@ -9,7 +11,7 @@ bank = data.frame(lapply(bank, as.character), stringsAsFactors = FALSE)
 shinyServer(function(input, output, session) {
   #go to overview
   observeEvent(input$goover,{
-    updateTabItems(session, "tabs", "overview")
+    updateTabItems(session, "tabs", "explore")
   })
   #Initialize the counts at 0
   t_neg = 0
@@ -19,7 +21,7 @@ shinyServer(function(input, output, session) {
   
   #GO button on overview page
   observeEvent(input$go, {
-      updateTabItems(session, "tabs", "explore")
+      updateTabItems(session, "tabs", "prereq")
   })
   
   #Generate new sample, changes who has the disease
@@ -52,18 +54,18 @@ shinyServer(function(input, output, session) {
       for (j in c(1:25)) {
         if (pickdata[k] > qnorm(1 - (input$infect / 1000))) { #Assign disease
           if (test[k] > qnorm(1 - input$sens)) { #Assign test result if they have disease
-            points(i, j, pch = 21, col = "blue", bg = "green", cex = 1.75)
+            points(i, j, pch = 21, col = "#6DA9FF", bg="#17FF00", cex = 1.75)
             t_pos <<- t_pos + 1
           } else {
-            points(i, j, pch = 19, col = "red", cex = 1.75) #SHow false negative
+            points(i, j, pch = 19, col = "#FF0000", cex = 1.75) #SHow false negative
             f_neg <<- f_neg + 1
           }
         } else {
           if (test[k] > qnorm(input$spec)) { #Assign test result if they don't have the disease
-            points(i, j, pch = 19, col = "blue", cex = 1.75)
+            points(i, j, pch = 19, col = "#003AFF", cex = 1.75)
             f_pos <<- f_pos + 1
           } else {
-            points(i, j, pch = 19, col = "black", cex = 0.75)
+            points(i, j, pch = 19, col = "#949794", cex = 0.75)
             t_neg <<- t_neg + 1
           }
         }
@@ -75,8 +77,8 @@ shinyServer(function(input, output, session) {
                                     paste0("True Positive (", t_pos, ")"),
                                     paste0("False Negative (", f_neg, ")"),
                                     paste0("False Positive (", f_pos, ")")),
-           horiz = FALSE, bty = "n", pch = 21, col = c("black", "blue", "red", "blue"),
-           pt.cex = c(0.75, 2, 2, 2), pt.bg = c("black", "green", "red", "blue"), ncol = 2)
+           horiz = FALSE, bty = "n", pch = 21, col = c("#949794", "#003AFF", "#FF0000", "#003AFF"),
+           pt.cex = c(0.75, 1.75, 1.75, 1.75), pt.bg = c("#949794", "#17FF00", "#FF0000", "#003AFF"), ncol = 2)
     
     t__pos = t_pos
     f__pos = f_pos
@@ -118,8 +120,10 @@ shinyServer(function(input, output, session) {
     counter$countervalue <- counter$countervalue + 1
     if ((counter$countervalue %% 2) == 0) {
       output$sample_ans <- renderText("")
+      updateButton(session=session, inputId = "show_ans", label = "Show Sample Answer")
     }
     else {
+      updateButton(session=session, inputId = "show_ans", label = "Hide Sample Answer")
       output$sample_ans <- renderText(bank[numbers$question, 3])
     }
   })
@@ -157,6 +161,23 @@ shinyServer(function(input, output, session) {
       helpText(sprintf('$$P(D|T) = 
                         \\frac{P(T|D)*P(D)}
                         {P(T|D)*P(D)+P(T|D^{c})*P(D^{c})}$$')))
+  })
+  observeEvent(input$hint,{
+    sendSweetAlert(
+      session = session,
+      title = "Hint:",
+      type = NULL,
+      closeOnClickOutside = TRUE,
+      text="Think about the way each slider affects the probability"
+    )
+  })
+  observeEvent(input$info,{
+    sendSweetAlert(
+      session = session,
+      title = "Instructions:",
+      text = "Adjust sliders and observe the effects",
+      type = NULL
+    )
   })
 })
 
