@@ -4,6 +4,7 @@ library(shinyBS)
 library(shinyWidgets)
 library(dplyr)
 library(shinycssloaders)
+library(rlocker)
 
 shinyUI(fluidPage(
   

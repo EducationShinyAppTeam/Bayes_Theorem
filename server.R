@@ -4,11 +4,28 @@ library(shinyBS)
 library(shinyWidgets)
 library(dplyr)
 library(shinycssloaders)
+library(rlocker)
 
 bank <- read.csv("questionbank.csv")
 bank = data.frame(lapply(bank, as.character), stringsAsFactors = FALSE)
 
 shinyServer(function(input, output, session) {
+  #add Rlocker setup
+  # Initialize Learning Locker connection
+  connection <- rlocker::connect(session, list(
+    base_url = "https://learning-locker.stat.vmhost.psu.edu/",
+    auth = "Basic ZDQ2OTNhZWZhN2Q0ODRhYTU4OTFmOTlhNWE1YzBkMjQxMjFmMGZiZjo4N2IwYzc3Mjc1MzU3MWZkMzc1ZDliY2YzOTNjMGZiNzcxOThiYWU2",
+    agent = rlocker::createAgent()
+  ))
+  
+  # Setup demo app and user.
+  currentUser <- 
+    connection$agent
+  
+  if(connection$status != 200){
+    warning(paste(connection$status, "\nTry checking your auth token.")) 
+  }
+  
   #go to overview
   observeEvent(input$goover,{
     updateTabItems(session, "tabs", "explore")
@@ -121,10 +138,12 @@ shinyServer(function(input, output, session) {
     if ((counter$countervalue %% 2) == 0) {
       output$sample_ans <- renderText("")
       updateButton(session=session, inputId = "show_ans", label = "Show Sample Answer")
+      v<<-FALSE
     }
     else {
       updateButton(session=session, inputId = "show_ans", label = "Hide Sample Answer")
       output$sample_ans <- renderText(bank[numbers$question, 3])
+      v<<-TRUE
     }
   })
   
@@ -139,7 +158,7 @@ shinyServer(function(input, output, session) {
     output$sample_ans <- renderText("")
   })
     
-  #SHow calculation
+  #Show calculation
   output$calculation <- renderUI({
     if (!input$pop_result) return()
     withMathJax(
@@ -178,6 +197,45 @@ shinyServer(function(input, output, session) {
       text = "Adjust sliders and observe the effects",
       type = NULL
     )
+  })
+  
+  ####add rlocker statement generated
+  # Gets current page address from the current session
+  getCurrentAddress <- function(session){
+    return(paste0(
+      session$clientData$url_protocol, "//",
+      session$clientData$url_hostname,
+      session$clientData$url_pathname, ":",
+      session$clientData$url_port,
+      session$clientData$url_search
+    ))
+  }
+  
+  ####v means if the user view the sample answer of not, it displays as result object####
+  v<<-FALSE
+  observeEvent(input$infect | input$spec | input$sens | input$ques | input$show_ans | input$show_ans,{
+    statement <- rlocker::createStatement(
+      list(
+        verb = list(
+          display = "interacted"
+        ),
+        object = list(
+          id = paste0(getCurrentAddress(session), "#", numbers$question),
+          name = paste('Question', numbers$question),
+          description = bank[numbers$question, 2]
+        ),
+        result = list(
+          success = v,
+          response = paste(input$infect, input$spec, input$sens)
+        )
+      )
+    )
+    
+    # Store statement in locker and return status
+    status <- rlocker::store(session, statement)
+    
+    print(statement) # remove me
+    print(status) # remove me
   })
 })
 
