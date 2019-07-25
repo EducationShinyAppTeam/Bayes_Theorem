@@ -211,7 +211,7 @@ shinyServer(function(input, output, session) {
     ))
   }
   
-  ####v means if the user view the sample answer of not, it displays as result object####
+  ####v means if the user view the sample answer of not, it displays as the last object of the response####
   v<<-FALSE
   observeEvent(input$infect | input$spec | input$sens | input$ques | input$show_ans | input$show_ans,{
     statement <- rlocker::createStatement(
@@ -225,12 +225,11 @@ shinyServer(function(input, output, session) {
           description = bank[numbers$question, 2]
         ),
         result = list(
-          success = v,
-          response = paste(input$infect, input$spec, input$sens)
+          success = NA,
+          response = paste(input$infect, input$spec, input$sens, v)
         )
       )
     )
-    
     # Store statement in locker and return status
     status <- rlocker::store(session, statement)
     
