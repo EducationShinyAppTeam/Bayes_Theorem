@@ -16,9 +16,10 @@ shinyUI(fluidPage(
                                         tags$a(href='https://shinyapps.science.psu.edu/',
                                                icon("home", lib = "font-awesome"))),
                                 tags$li(class="dropdown",
-                                        actionLink("info",icon("info"),class="myClass")),
-                                tags$li(class="dropdown",
-                                        actionLink("hint",icon("question"),class="myClass"))),
+                                        actionLink("info",icon("info"),class="myClass"))
+                                # tags$li(class="dropdown",
+                                #         actionLink("hint",icon("question"),class="myClass"))
+                                ),
   
                 dashboardSidebar(
                   sidebarMenu(
@@ -67,6 +68,15 @@ shinyUI(fluidPage(
                               wellPanel(
                                 fluidRow(
                                   column(3,
+                                         tags$li(
+                                           style = "display: inline-block;",
+                                           circleButton(
+                                             "hint",
+                                             icon = icon("question"),
+                                             status = "myClass",
+                                             size = "xs"
+                                           )
+                                         ),
                                          sliderInput("infect", "Prevalence (Per 1000 People)", min = 1, max = 100, step = 1, value = 5),
                                          bsPopover("infect", "Prevalence (Per 1000 People)","The average number of people (per 1000) that has the disease.",
                                                    placement = "bottom", options = NULL),

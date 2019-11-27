@@ -194,7 +194,7 @@ shinyServer(function(input, output, session) {
     sendSweetAlert(
       session = session,
       title = "Instructions:",
-      text = "Adjust sliders and observe the effects",
+      text = "This app is designed to demonstrate Bayes’ Theorem using the classic example of disease incidence.",
       type = NULL
     )
   })
