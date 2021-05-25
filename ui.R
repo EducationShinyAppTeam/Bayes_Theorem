@@ -25,8 +25,8 @@ shinyUI(fluidPage(
                   sidebarMenu(
                     id = "tabs",
                     menuItem("Overview", tabName = "overview", icon = icon("dashboard")),
-                    menuItem("Pre-requisites", icon  = icon("book"), tabName = "prereq"),
-                    menuItem("Explore", icon = icon("wpexplorer"), tabName = "explore")
+                    menuItem("Prerequisites", tabName = "prereq", icon  = icon("book")),
+                    menuItem("Explore", tabName = "explore", icon = icon("wpexplorer")) 
                   )
                 ),
                 dashboardBody(
@@ -43,7 +43,7 @@ shinyUI(fluidPage(
                             h4("Adjust the sliders to help you solve the challenges."),
                             br(),
                             div(style = "text-align: center",
-                                bsButton("go", "GO!", size = "large", icon = icon("bolt"),class="circle grow")),
+                                bsButton("go", "Read the Prerequisites", size = "large", icon = icon("bolt"),class="circle grow")),
                             h3(strong("Acknowledgements:")),
                             h4("This app was developed and coded by Sam Messer and improved by Yiyang Wang.")
                     ),
@@ -61,7 +61,7 @@ shinyUI(fluidPage(
                             h4(tags$li("P(Not T|Not D) is called the Specificity")),
                             br(),
                             div(style = "text-align: center",
-                                bsButton("goover", "Go to the Pre-requisites", size = "large", icon = icon("bolt"),class="circle grow"))
+                                bsButton("goover", "Start the Challenge", size = "large", icon = icon("bolt"),class="circle grow"))
                             ),
                     tabItem(tabName = "explore",
                             h4(
