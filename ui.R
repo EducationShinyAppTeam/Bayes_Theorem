@@ -56,13 +56,9 @@ shinyUI(fluidPage(
       ), 
       
       tabItem(tabName = "prereq", 
-              h3(strong("Background: Bayes' Theorem")), 
+              h3("Background: Bayes' Theorem"), 
               h4("For two events D and T, Bayes' Theorem relates P(D|T) to P(T|D) through:"), 
-              fluidRow(
-                column(12, align="center", 
-                       uiOutput('calculation_part')
-                )
-              ), 
+              uiOutput('calculation_part'), 
               h4("In the screening test example used in this application, we define:"), 
               h4(tags$li("D = Has the disease")), 
               h4(tags$li("T = Tests positive for the disease")), 
@@ -74,78 +70,75 @@ shinyUI(fluidPage(
                   bsButton("goover", "Start the Challenge", size = "large", icon = icon("bolt"),class="circle grow")
                   )
       ), 
-      
       tabItem(tabName = "explore", 
               sidebarLayout(
                 sidebarPanel(
-                  wellPanel(
-                    h2("Challenge:"),
-                    textOutput("question"),
-                    br(),
-                    bsButton("ques", "New Challenge"),
-                    br(),
-                    br(),
-                    textOutput("sample_ans"),
-                    br(),
-                    bsButton("show_ans", "Show Sample Answer"),
-                    br(), 
-                    circleButton(
-                      inputId = "hint", 
-                      icon = icon("question"), 
-                      status = "myClass", 
-                      size = "xs"
-                      ),
-                    sliderInput(
-                      inputId = "infect", 
-                      label = "Prevalence (Per 1000 People)", 
-                      min = 1, 
-                      max = 100, 
-                      step = 1, 
-                      value = 5
-                      ),
-                    bsPopover(
-                      id = "infect", 
-                      title = "Prevalence (Per 1000 People)", 
-                      content = "The average number of people (per 1000) that has the disease.", 
-                      placement = "bottom", 
-                      options = NULL
-                      ),
-                    sliderInput(
-                      inputId = "spec", 
-                      label = "Specificity", 
-                      min = 0.5, 
-                      max = 0.999, 
-                      value = 0.99, 
-                      step = 0.001
-                      ),
-                    bsPopover(
-                      id = "spec", 
-                      title = "Specificity", 
-                      content = "The probability of someone who <b>does not have</b> the disease testing positive for it.", 
-                      placement = "bottom", 
-                      options = NULL
-                      ),
-                    sliderInput(
-                      inputId = "sens", 
-                      label = "Sensitivity", 
-                      min = 0.5, 
-                      max = 0.999, 
-                      value = 0.995, 
-                      step = 0.001
-                      ),
-                    bsPopover(
-                      id = "sens", 
-                      title = "Sensitivity", 
-                      content = "The probability of someone who <b>has</b> the disease testing positive for it.", 
-                      placement = "bottom", options = NULL
-                      ),
-                    bsButton(
-                      id = "new", 
-                      title = " Generate New Sample", 
-                      icon("retweet")
-                      )
-                  )
-                ),
+                  h2("Challenge:"),
+                  textOutput("question"),
+                  br(),
+                  bsButton("ques", "New Challenge"),
+                  br(),
+                  br(),
+                  textOutput("sample_ans"),
+                  br(),
+                  bsButton("show_ans", "Show Sample Answer"),
+                  br(), 
+                  circleButton(
+                    inputId = "hint", 
+                    icon = icon("question"), 
+                    status = "myClass", 
+                    size = "xs"
+                    ),
+                  sliderInput(
+                    inputId = "infect", 
+                    label = "Prevalence (Per 1000 People)", 
+                    min = 1, 
+                    max = 100, 
+                    step = 1, 
+                    value = 5
+                    ),
+                  bsPopover(
+                    id = "infect", 
+                    title = "Prevalence (Per 1000 People)", 
+                    content = "The average number of people (per 1000) that has the disease.", 
+                    placement = "bottom", 
+                    options = NULL
+                    ),
+                  sliderInput(
+                    inputId = "spec", 
+                    label = "Specificity", 
+                    min = 0.5, 
+                    max = 0.999, 
+                    value = 0.99, 
+                    step = 0.001
+                    ),
+                  bsPopover(
+                    id = "spec", 
+                    title = "Specificity", 
+                    content = "The probability of someone who <b>does not have</b> the disease testing positive for it.", 
+                    placement = "bottom", 
+                    options = NULL
+                    ),
+                  sliderInput(
+                    inputId = "sens", 
+                    label = "Sensitivity", 
+                    min = 0.5, 
+                    max = 0.999, 
+                    value = 0.995, 
+                    step = 0.001
+                    ),
+                  bsPopover(
+                    id = "sens", 
+                    title = "Sensitivity", 
+                    content = "The probability of someone who <b>has</b> the disease testing positive for it.", 
+                    placement = "bottom", options = NULL
+                    ),
+                  bsButton(
+                    id = "new", 
+                    title = " Generate New Sample", 
+                    icon("retweet")
+                    )
+                  ),
                 mainPanel(
                   plotOutput("plot1")%>% withSpinner(color="#337ab7"),
                   bsPopover(
@@ -163,4 +156,5 @@ shinyUI(fluidPage(
                 )
               )
       )
+    ))
 ))
