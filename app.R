@@ -21,11 +21,6 @@ ui <- list(
     dashboardHeader(
       title = "Bayes' Theorem", 
       titleWidth = 250,
-      tags$li(class = "dropdown", 
-              tags$a(href='https://shinyapps.science.psu.edu/', 
-                     icon("home", lib = "font-awesome")
-              )
-      ),
       tags$li(
         class = "dropdown", 
         actionLink("info",icon("info"))
@@ -35,6 +30,11 @@ ui <- list(
         tags$a(target = "_blank", icon("comments"),
                href = "https://pennstate.qualtrics.com/jfe/form/SV_7TLIkFtJEJ7fEPz?appName=Bayes_Theorem"
         )
+      ),
+      tags$li(class = "dropdown", 
+              tags$a(href='https://shinyapps.science.psu.edu/', 
+                     icon("home", lib = "font-awesome")
+              )
       )
     ),
     
@@ -124,24 +124,6 @@ ui <- list(
               offset = 0,
               wellPanel(
                 bsButton(
-                  inputId = "ques", 
-                  label = "New Challenge"),
-                br(), 
-                br(),
-                textOutput("question"),
-                br(), 
-                bsButton(
-                  inputId = "show_ans", 
-                  label = "Show Sample Answer"),
-                br(),
-                textOutput("sample_ans")
-              )
-            ),
-            column(
-              width = 6, 
-              offset = 0,
-              wellPanel(
-                bsButton(
                   inputId = "hint",
                   label = "Show hint", 
                   icon = icon("question"),
@@ -187,6 +169,24 @@ ui <- list(
                             disease testing positive for it.", 
                   placement = "bottom", 
                   options = NULL),
+              )
+            ),
+            column(
+              width = 6, 
+              offset = 0,
+              wellPanel(
+                bsButton(
+                  inputId = "ques", 
+                  label = "New Challenge"),
+                br(), 
+                br(),
+                textOutput("question"),
+                br(), 
+                bsButton(
+                  inputId = "show_ans", 
+                  label = "Show Sample Answer"),
+                br(),
+                textOutput("sample_ans")
               )
             )
           ),
