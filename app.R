@@ -454,18 +454,23 @@ ui <- list(
   output$calculation <- renderUI({
     if (!input$pop_result) return()
     withMathJax(
-      helpText(sprintf('$$\\small{P(Disease|Positive) = 
-                        \\frac{Sensitivity * Prevalence}
-                        {Sensitivity * Prevalence
-                        + (1 - Specificity) * (1 - Prevalence)} =
-                        \\frac{%s * %0.3f}
-                        {%s * %0.3f + (1 - %s) 
-                        * (1 - %0.3f)} = %1.3f}$$', 
-                       input$sens, input$infect/1000, input$sens, input$infect/1000, input$spec, input$infect/1000,
-                       (input$sens * (input$infect/1000)) / 
-                         ((input$sens * (input$infect/1000)) + ((1 - input$spec) * (1 - (input$infect/1000))))))
+      sprintf(
+        fmt = "\\[\\begin{align}P(Disease|Positive) &=
+        \\frac{Sensitivity * Prevalence}
+      {Sensitivity * Prevalence + (1 - Specificity) * (1 - Prevalence)} \\\\
+      &= \\frac{%.3f * %.3f} {%.3f * %.3f + (1 - %.3f) * (1 - %.3f)} \\\\
+      &= %.3f\\end{align}\\]",
+      input$sens, 
+      input$infect/1000, 
+      input$sens, 
+      input$infect/1000, 
+      input$spec, 
+      input$infect/1000, 
+      (input$sens * (input$infect/1000)) / ((input$sens * (input$infect/1000)) + ((1 - input$spec) * (1 - (input$infect/1000))))
+      )
     )
   })
+  
   
   output$calculation_part <- renderUI({
     withMathJax(
