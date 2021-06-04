@@ -21,7 +21,7 @@ ui <- list(
     dashboardHeader(
       title = "Bayes' Theorem", 
       titleWidth = 250,
-      awtags$li(
+      tags$li(
         class = "dropdown", 
         actionLink("info",icon("info"))
       ),
@@ -79,9 +79,11 @@ ui <- list(
           br(),
           br(), 
           h2("Acknowledgements:"), 
-          tags$li("Created by Sam Messer, 2018."),
-          tags$li("Updated by Yiyang Wang, 2019."),
-          tags$li("Improved by Kellien Peritz, 2021.")
+          p("Created by Sam Messer, 2018.",
+            br(),
+            "Updated by Yiyang Wang, 2019.",
+            br(),
+            "Improved by Kellien Peritz, 2021.")
         ),
         
         #### Set up the Prerequisites Page ----
