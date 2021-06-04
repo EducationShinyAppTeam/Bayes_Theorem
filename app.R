@@ -21,7 +21,7 @@ ui <- list(
     dashboardHeader(
       title = "Bayes' Theorem", 
       titleWidth = 250,
-      tags$li(
+      awtags$li(
         class = "dropdown", 
         actionLink("info",icon("info"))
       ),
