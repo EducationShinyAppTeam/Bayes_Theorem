@@ -6,7 +6,7 @@ Authors@R: c(
     person(given = "Ryan", family = "Manigly-Haney", role = c("aut", "cre")),
     person(given = "Yuxin", family = "Zhang", role = c("ctb")),
     person(given = "Xigang", family = "Zhang", role = c("ctb")),
-    person(given = "Kellien", family = "Peritz", role = c("ctb")),
+    person(given = "Kellien", family = "Peritz", role = c("ctb"))
   )
 Chapter: Probability
 Description: This app is designed to demonstrate Bayes’ Theorem using the classic example of disease incidence.
