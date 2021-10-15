@@ -4,45 +4,42 @@ library(shinydashboard)
 library(shinyBS)
 library(shinyWidgets)
 library(dplyr)
-library(shinycssloaders)
+library(shinycssloaders) # Is this actually necessary?
 library(boastUtils)
+library(ggplot2)
 
-# Load additional dependencies and setup functions
-bank <- read.csv("questionbank.csv")
-bank = data.frame(lapply(bank, as.character), stringsAsFactors = FALSE)
-
-# source("global.R")
+# Load files ----
+questionBank <- read.csv("questionbank.csv", header =  TRUE)
 
 # Define UI for App ----
 ui <- list(
   dashboardPage(
     skin = "blue",
+    ## Header ----
     dashboardHeader(
       title = "Bayes' Theorem",
       titleWidth = 250,
       tags$li(
         class = "dropdown",
-        actionLink("info",icon("info"))
+        actionLink("info", icon("info"))
       ),
       tags$li(
         class = "dropdown",
-        tags$a(target = "_blank", icon("comments"),
-               href = "https://pennstate.qualtrics.com/jfe/form/SV_7TLIkFtJEJ7fEPz?appName=Bayes_Theorem"
-        )
+        boastUtils::surveyLink(name = "Bayes_Theorem")
       ),
-      tags$li(class = "dropdown",
-              tags$a(href='https://shinyapps.science.psu.edu/',
-                     icon("home", lib = "font-awesome")
-              )
+      tags$li(
+        class = "dropdown",
+        tags$a(href = 'https://shinyapps.science.psu.edu/',
+               icon("home")
+        )
       )
     ),
-
-    ### Create the sidebar navigation menu ----
+    ## Sidebar ----
     dashboardSidebar(
       width = 250,
       sidebarMenu(
         id = "pages",
-        menuItem("Overview", tabName = "overview", icon = icon("dashboard")),
+        menuItem("Overview", tabName = "overview", icon = icon("tachometer-alt")),
         menuItem("Prerequisites", tabName = "prereq", icon  = icon("book")),
         menuItem("Challenge", tabName = "challenge", icon = icon("wpexplorer")),
         menuItem("References", tabName = "references", icon = icon("leanpub"))
@@ -52,185 +49,174 @@ ui <- list(
         boastUtils::sidebarFooter()
       )
     ),
-    ### Create the content ----
+    ## Body ----
     dashboardBody(
       tabItems(
-        #### Set up the Overview Page ----
+        ### Overview----
         tabItem(
           tabName = "overview",
           h1("Bayes' Theorem App Overview"),
           br(),
-          h2("About:"),
           p("This app is designed to demonstrate Bayes' Theorem using the
             classic example of disease incidence."),
           br(),
-          h2("Instructions:"),
+          h2("Instructions"),
           p("Adjust the sliders to help you solve the challenges."),
           br(),
-          div(style = "text-align: center",
-              bsButton(
-                inputId = "goprereq",
-                label = "Read the prerequisites",
-                size = "large",
-                icon = icon("bolt")
-              )
+          div(
+            style = "text-align: center;",
+            bsButton(
+              inputId = "goPrereq",
+              label = "Read the prerequisites",
+              size = "large",
+              icon = icon("bolt")
+            )
           ),
           br(),
           br(),
-          h2("Acknowledgements:"),
-          tags$li("Created by Sam Messer, 2018."),
-          tags$li("Updated by Yiyang Wang, 2019."),
-          tags$li("Improved by Kellien Peritz, 2021.")
+          h2("Acknowledgements"),
+          p("This app was originally created by Sam Messer in 2018, with updates
+            by Yiyang Wang (2019) and Kellien Pertiz (2021).",
+            br(),
+            br(),
+            "Cite this app as:",
+            br(),
+            boastUtils::citeApp(),
+            br(),
+            br(),
+            div(class = "updated", "Last Update: 10/15/2021 by NJH.")
+          )
         ),
-
-        #### Set up the Prerequisites Page ----
+        ### Prerequisites ----
         tabItem(
           tabName = "prereq",
           withMathJax(),
           h2("Background of Bayes' Theorem"),
           br(),
-          h4("For two events D and T, Bayes' Theorem relates P(D|T) to P(T|D) through:"),
-          div(style = "text-align: center;",
-              uiOutput('calculation_part')
+          p("For two events denoted \\(D\\) and \\(T\\), Bayes' Theorem relates
+            the probability of \\(D\\) occuring given that \\(T\\) occurred
+            (expressed as \\(P(D|T)\\)) to the probability that \\(T\\) occurs
+            given that we know \\(D\\) occurred (\\(P(T|D)\\)) through the formula:
+            \\[\\begin{align} P(D|T) &=\\frac{P(T|D)\\cdot P(D)}{P(T|D)\\cdot
+            P(D) + P(T|D^C)\\cdot P(D^C)} \\\\
+            &= \\frac{\\text{Sensitivity} \\cdot \\text{Prevalence}}
+            {\\left(\\text{Sensitivity}\\cdot\\text{Prevalence}\\right) + 
+            \\left(1-\\text{Specificity}\\right)\\cdot
+            \\left(1-\\text{Prevalence}\\right)}\\end{align}\\]
+            where \\(D^C\\) is the complement of \\(D\\)."
           ),
-          br(),
-          h4("In the screening test example used in this application, we define:"),
+          p("In the screening test example used in this application, we define:"),
           tags$ul(
-            tags$li("D = Has the disease"),
-            tags$li("T = Tests positive for the disease"),
-            tags$li("P(D) is called the Prevalence"),
-            tags$li("P(T|D) is called the Sensitivity"),
-            tags$li("P(Not T|Not D) is called the Specificity")
+            tags$li("\\(D\\) to be the event that a person has the disease of 
+                    interest"),
+            tags$li("\\(T\\) to be the event that a person tests positive for 
+                    the disease of interest"),
+            tags$li("the probability of a person having the disease of interest,
+                    \\(P(D)\\), is prevalence of the disease"),
+            tags$li("the probability of a person testing positive given they have
+                    the disease of interest, \\(P(T|D)\\), is test's sensitivity"),
+            tags$li("the probability of a person testing negative when they do
+                    not have the disease of interest, \\(P(T^C|D^C)\\), is the
+                    test's specificity")
           ),
           br(),
           div(style = "text-align: center;",
               bsButton(
-                inputId = "gochallenge",
+                inputId = "goChallenge",
                 label = "Go to the Challenge",
                 size = "large",
                 icon = icon("bolt")
               )
           )
         ),
-        #### Set up a Challenge Page ----
+        ### Challenge Page ----
         tabItem(
           tabName = "challenge",
           withMathJax(),
           h2("Challenge Yourself"),
+          p("Use the sliders to adjust the disease's prevalence, and the test's
+            specificty and sensitivity to match the challenge given. You can 
+            generate a sample of 1000 people based upon your slider values and
+            compare the sample results to calculations from Bayes' Theorem."),
+          p("As you adjust the sliders, think about how each one affects the 
+            probability."),
           fluidRow(
             column(
-              width = 6,
+              width = 5,
               offset = 0,
               wellPanel(
+                h3("Challenge"),
+                textOutput("question"),
+                br(),
                 bsButton(
-                  inputId = "hint",
-                  label = "Show hint",
-                  icon = icon("question"),
-                  size = "xs"
+                  inputId = "show_ans",
+                  label = "Show Sample Answer"
                 ),
+                textOutput("sample_ans"),
+                br(),
+                bsButton(
+                  inputId = "ques",
+                  label = "New Challenge"
+                ),
+                br(),
+                br(),
                 sliderInput(
                   inputId = "infect",
-                  label = "Prevalence (Per 1000 People)",
+                  label = "Prevalence (per 1000 people)",
                   min = 1,
                   max = 100,
                   step = 1,
-                  value = 5),
-                bsPopover(
-                  id = "infect",
-                  title = "Prevalence (Per 1000 People)",
-                  content = "The average number of people (per 1000) that has the disease.",
-                  placement = "bottom",
-                  options = NULL),
+                  value = 5
+                ),
                 sliderInput(
                   inputId = "spec",
                   label = "Specificity",
                   min = 0.5,
                   max = 0.999,
                   value = 0.99,
-                  step = 0.001),
-                bsPopover(
-                  id = "spec",
-                  title = "Specificity",
-                  content = "The probability of someone who <b>does not have</b>
-                            the disease testing positive for it.",
-                  placement = "bottom", options = NULL),
+                  step = 0.001
+                ),
                 sliderInput(
                   inputId = "sens",
                   label = "Sensitivity",
                   min = 0.5,
                   max = 0.999,
                   value = 0.995,
-                  step = 0.001),
-                bsPopover(
-                  id = "sens",
-                  title = "Sensitivity",
-                  content = "The probability of someone who <b>has</b> the
-                            disease testing positive for it.",
-                  placement = "bottom",
-                  options = NULL),
+                  step = 0.001
+                )
               )
             ),
             column(
-              width = 6,
+              width = 7,
               offset = 0,
-              wellPanel(
+              div(
+                style = "text-align: center;",
                 bsButton(
-                  inputId = "ques",
-                  label = "New Challenge"),
-                br(),
-                br(),
-                textOutput("question"),
-                br(),
-                bsButton(
-                  inputId = "show_ans",
-                  label = "Show Sample Answer"),
-                br(),
-                textOutput("sample_ans")
-              )
-            )
-          ),
-          fluidRow(
-            column(
-              width = 12,
-              offset = 0,
-              wellPanel(
-                plotOutput("plot1")%>% withSpinner(color="#337ab7"),
-                bsPopover(
-                  id = "plot1",
-                  title = "Sample Results",
-                  content = "The points show a sample of 1000 people from the
-                            population. All are tested for the disease, and the
-                            results are displayed by the size and color of dot.",
-                  placement = "bottom",
-                  options = NULL),
-                div(style = "text-align: center",
-                    bsButton(
-                      inputId = "new",
-                      label = "Generate New Sample",
-                      icon("retweet")
-                    )
+                  inputId = "new",
+                  label = "Generate New Sample",
+                  icon("retweet")
                 )
-              )
+              ),
+              br(),
+              plotOutput("newPlot"),
+              plotOutput("plot1") %>% 
+                withSpinner(color = boastPalette[1]),
+              ## Text for graph
+              ### "The points show a sample of 1000 people from the
+              ### population. All are tested for the disease, and the
+              ### results are displayed by the size and color of dot."
+              br(),
+              textOutput("result"),
             )
           ),
-
-          fluidRow(
-            column(
-              width = 12,
-              offset = 0,
-              wellPanel(
-                checkboxInput(
-                  inputId = "pop_result",
-                  label = "Show Theoretical Result",
-                  value = TRUE),
-                textOutput("result"),
-                uiOutput('calculation')
-              )
-            )
-          )
+          checkboxInput(
+            inputId = "theoryCalc",
+            label = "Show Theoretical Result",
+            value = TRUE
+          ),
+          uiOutput('calculation')
         ),
-
-        #### Set up the References Page ----
+        ### References ----
         tabItem(
           tabName = "references",
           h2("References"),
@@ -274,8 +260,8 @@ ui <- list(
   )
 )
 
-  # Define server logic ----
-  server <- function(input, output, session) {
+# Define server logic ----
+server <- function(input, output, session) {
   ## Set up Rlocker
   # connection <- rlocker::connect(session, list(
   #   base_url = "https://learning-locker.stat.vmhost.psu.edu/",
@@ -289,15 +275,41 @@ ui <- list(
   # if(connection$status != 200){
   #   warning(paste(connection$status, "\nTry checking your auth token."))
   # }
-
-  #go to challenge
+  
+  ## Info button ----
   observeEvent(
-    eventExpr = input$gochallenge,
+    eventExpr = input$info,
     handlerExpr = {
-    updateTabItems(
-      session = session,
-      inputId = "pages",
-      selected = "challenge")
+      sendSweetAlert(
+        session = session,
+        title = "Instructions",
+        text = "Use the sliders to explore Bayes' Theorem and match the displayed
+        challenge",
+        type = "info"
+      )
+  })
+  
+  ## Go to prereq's button ----
+  observeEvent(
+    eventExpr = input$goPrereq,
+    handlerExpr = {
+      updateTabItems(
+        session = session,
+        inputId = "pages",
+        selected = "prereq"
+      )
+    }
+  )
+
+  ## Go to challenge button ----
+  observeEvent(
+    eventExpr = input$goChallenge,
+    handlerExpr = {
+      updateTabItems(
+        session = session,
+        inputId = "pages",
+        selected = "challenge"
+      )
     }
   )
 
@@ -307,25 +319,87 @@ ui <- list(
   f_neg = 0
   f_pos = 0
 
-  #GO button on overview page
-  observeEvent(
-    eventExpr = input$goprereq,
-    handlerExpr = {
-      updateTabItems(
-        session = session,
-        inputId = "pages",
-        selected = "prereq")
-    }
-  )
+  
 
   #Generate new sample, changes who has the disease
   pick <- reactive({
     input$new
     rnorm(1000)
   })
+  
+  ## Display and update challenge ----
+  
+  ## Display sample answer ----
+  
+  ## Create data ----
+  sampleData <- reactiveVal(
+    data.frame(
+      x = rep(1:40, each = 25),
+      y = rep(1:25, times = 40)
+    )
+  )
+  ### Sample size is fixed at 1000
+  ### Two stage approach
+  #### Stage 1: Use prevalence info for who does/doesn't have disease
+  #### Stage 2: use sensitivity & specificity for FP, FN, TP, TN
+  
+  ## Display sample plot ----
+  output$newPlot <- renderPlot(
+    expr = {
+      validate(
+        need(
+          expr = !is.null(sampleData()$x),
+          message = "Click on Generate New Sample to create a plot"
+        )
+      )
+      ggplot(
+        data = sampleData(),
+        mapping = aes(x = x, y = y)
+      ) + 
+        geom_point(color = boastPalette[7], size = 1) +
+        theme_void() +
+        theme(
+          text = element_text(size = 18),
+          legend.position = "bottom"
+        ) +
+        labs(
+          title = "Sample of 1000 People from the Population"
+        )
+    },
+    alt = "The points show a sample of 1000 people from the population. All are
+    tested for the disease, and the results are displayed by the shape and color
+    of dot."
+  )
+  
+  ## Display sample results ----
+  
+  ## Theoretical results ----
+  output$calculation <- renderUI({
+    if (input$theoryCalc) {
+      withMathJax(
+        sprintf(
+          fmt = "\\[\\begin{align}P(Disease|Positive) &=
+            \\frac{Sensitivity * Prevalence}
+            {Sensitivity * Prevalence + (1 - Specificity) * (1 - Prevalence)} \\\\
+            &= \\frac{%.3f * %.3f} {%.3f * %.3f + (1 - %.3f) * (1 - %.3f)} \\\\
+            &= %.3f\\end{align}\\]",
+          input$sens,
+          input$infect/1000,
+          input$sens,
+          input$infect/1000,
+          input$spec,
+          input$infect/1000,
+          (input$sens * (input$infect/1000)) / ((input$sens * (input$infect/1000)) + ((1 - input$spec) * (1 - (input$infect/1000))))
+        )
+      )
+    } else {
+      NULL
+    }
+  })
 
   ## The main display ----
   output$plot1 <- renderPlot({
+    par(mar = c(0.1,0.1,1,0.1))
 
     #Draw an empty plot with no outside box or axes
     plot(x = NULL, y = NULL,
@@ -348,20 +422,20 @@ ui <- list(
           #Assign disease
           if (test[k] > qnorm(1 - input$sens)) {
             #Assign test result if they have disease
-            points(i, j, pch = 21, col = "#6DA9FF", bg="#17FF00", cex = 1.75)
+            points(i, j, pch = 21, col = boastPalette[8], bg = psuPalette[8], cex = 1.75)
             t_pos <<- t_pos + 1
           } else {
             #SHow false negative
-            points(i, j, pch = 19, col = "#FF0000", cex = 1.75)
+            points(i, j, pch = 19, col = psuPalette[2], cex = 1.75)
             f_neg <<- f_neg + 1
           }
         } else {
           if (test[k] > qnorm(input$spec)) {
             #Assign test result if they don't have the disease
-            points(i, j, pch = 19, col = "#003AFF", cex = 1.75)
+            points(i, j, pch = 19, col = boastPalette[1], cex = 1.75)
             f_pos <<- f_pos + 1
           } else {
-            points(i, j, pch = 19, col = "#949794", cex = 0.75)
+            points(i, j, pch = 19, col = boastPalette[7], cex = 0.75)
             t_neg <<- t_neg + 1
           }
         }
@@ -377,9 +451,9 @@ ui <- list(
            horiz = FALSE,
            bty = "n",
            pch = 21,
-           col = c("#949794", "#003AFF", "#FF0000", "#003AFF"),
+           col = c(boastPalette[7], boastPalette[1], psuPalette[2], boastPalette[1]),
            pt.cex = c(0.75, 1.75, 1.75, 1.75),
-           pt.bg = c("#949794", "#17FF00", "#FF0000", "#003AFF"),
+           pt.bg = c(boastPalette[7], psuPalette[8], psuPalette[2], boastPalette[1]),
            ncol = 2)
 
     t__pos = t_pos
@@ -406,16 +480,15 @@ ui <- list(
     f_neg <<- 0
     f_pos <<- 0
 
-  },
-  bg = "#F5F5F5")
+  })
 
   numbers <- reactiveValues(question=c())
 
-  num_qs <- length(bank$question)
+  num_qs <- length(questionBank$question)
 
   numbers$question = 1
 
-  output$question <- renderText(bank[numbers$question, 2])
+  output$question <- renderText(questionBank[numbers$question, 2])
 
   counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
 
@@ -428,7 +501,7 @@ ui <- list(
     }
     else {
       updateButton(session=session, inputId = "show_ans", label = "Hide Sample Answer")
-      output$sample_ans <- renderText(bank[numbers$question, 3])
+      output$sample_ans <- renderText(questionBank[numbers$question, 3])
       v<<-TRUE
     }
   })
@@ -447,54 +520,6 @@ ui <- list(
 
   output$mathTest <- renderUI({
     "\\[\\begin{align*}g(y) &= \\frac{test}{case} \\\\&= works\\end{align*}\\]"
-  })
-
-  #Show calculation
-  output$calculation <- renderUI({
-    if (!input$pop_result) return()
-    withMathJax(
-      sprintf(
-        fmt = "\\[\\begin{align}P(Disease|Positive) &=
-        \\frac{Sensitivity * Prevalence}
-      {Sensitivity * Prevalence + (1 - Specificity) * (1 - Prevalence)} \\\\
-      &= \\frac{%.3f * %.3f} {%.3f * %.3f + (1 - %.3f) * (1 - %.3f)} \\\\
-      &= %.3f\\end{align}\\]",
-      input$sens,
-      input$infect/1000,
-      input$sens,
-      input$infect/1000,
-      input$spec,
-      input$infect/1000,
-      (input$sens * (input$infect/1000)) / ((input$sens * (input$infect/1000)) + ((1 - input$spec) * (1 - (input$infect/1000))))
-      )
-    )
-  })
-
-
-  output$calculation_part <- renderUI({
-    withMathJax(
-      helpText(sprintf('$$P(D|T) =
-                        \\frac{P(T|D)*P(D)}
-                        {P(T|D)*P(D)+P(T|D^{c})*P(D^{c})}$$')))
-  })
-
-  observeEvent(input$hint,{
-    sendSweetAlert(
-      session = session,
-      title = "Hint:",
-      type = NULL,
-      closeOnClickOutside = TRUE,
-      text="Think about the way each slider affects the probability"
-    )
-  })
-
-  observeEvent(input$info,{
-    sendSweetAlert(
-      session = session,
-      title = "Instructions:",
-      text = "This app is designed to demonstrate Bayes’ Theorem using the classic example of disease incidence.",
-      type = NULL
-    )
   })
 
   # ####add rlocker statement generated
@@ -520,7 +545,7 @@ ui <- list(
   #       object = list(
   #         id = paste0(getCurrentAddress(session), "#", numbers$question),
   #         name = paste('Question', numbers$question),
-  #         description = bank[numbers$question, 2]
+  #         description = questionBank[numbers$question, 2]
   #       ),
   #       result = list(
   #         success = NA,
