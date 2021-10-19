@@ -11,6 +11,12 @@ library(ggplot2)
 # Load files ----
 questionBank <- read.csv("questionbank.csv", header =  TRUE)
 
+# Global Constant ----
+baseData <- data.frame(
+  x = rep(1:40, each = 25),
+  y = rep(1:25, times = 40)
+)
+
 # Define UI for App ----
 ui <- list(
   dashboardPage(
@@ -100,16 +106,16 @@ ui <- list(
             \\[\\begin{align} P(D|T) &=\\frac{P(T|D)\\cdot P(D)}{P(T|D)\\cdot
             P(D) + P(T|D^C)\\cdot P(D^C)} \\\\
             &= \\frac{\\text{Sensitivity} \\cdot \\text{Prevalence}}
-            {\\left(\\text{Sensitivity}\\cdot\\text{Prevalence}\\right) + 
+            {\\left(\\text{Sensitivity}\\cdot\\text{Prevalence}\\right) +
             \\left(1-\\text{Specificity}\\right)\\cdot
             \\left(1-\\text{Prevalence}\\right)}\\end{align}\\]
             where \\(D^C\\) is the complement of \\(D\\)."
           ),
           p("In the screening test example used in this application, we define:"),
           tags$ul(
-            tags$li("\\(D\\) to be the event that a person has the disease of 
+            tags$li("\\(D\\) to be the event that a person has the disease of
                     interest"),
-            tags$li("\\(T\\) to be the event that a person tests positive for 
+            tags$li("\\(T\\) to be the event that a person tests positive for
                     the disease of interest"),
             tags$li("the probability of a person having the disease of interest,
                     \\(P(D)\\), is prevalence of the disease"),
@@ -135,10 +141,10 @@ ui <- list(
           withMathJax(),
           h2("Challenge Yourself"),
           p("Use the sliders to adjust the disease's prevalence, and the test's
-            specificty and sensitivity to match the challenge given. You can 
+            specificty and sensitivity to match the challenge given. You can
             generate a sample of 1000 people based upon your slider values and
             compare the sample results to calculations from Bayes' Theorem."),
-          p("As you adjust the sliders, think about how each one affects the 
+          p("As you adjust the sliders, think about how each one affects the
             probability."),
           fluidRow(
             column(
@@ -150,18 +156,20 @@ ui <- list(
                 br(),
                 bsButton(
                   inputId = "show_ans",
-                  label = "Show Sample Answer"
+                  label = "Show Sample Answer",
+                  size = "large"
                 ),
                 textOutput("sample_ans"),
                 br(),
                 bsButton(
                   inputId = "ques",
-                  label = "New Challenge"
+                  label = "New Challenge",
+                  size = "large"
                 ),
                 br(),
                 br(),
                 sliderInput(
-                  inputId = "infect",
+                  inputId = "prevalence",
                   label = "Prevalence (per 1000 people)",
                   min = 1,
                   max = 100,
@@ -169,7 +177,7 @@ ui <- list(
                   value = 5
                 ),
                 sliderInput(
-                  inputId = "spec",
+                  inputId = "specificity",
                   label = "Specificity",
                   min = 0.5,
                   max = 0.999,
@@ -177,7 +185,7 @@ ui <- list(
                   step = 0.001
                 ),
                 sliderInput(
-                  inputId = "sens",
+                  inputId = "sensitivity",
                   label = "Sensitivity",
                   min = 0.5,
                   max = 0.999,
@@ -192,21 +200,23 @@ ui <- list(
               div(
                 style = "text-align: center;",
                 bsButton(
-                  inputId = "new",
+                  inputId = "newSample",
                   label = "Generate New Sample",
-                  icon("retweet")
+                  icon = icon("retweet"),
+                  size = "large"
                 )
               ),
               br(),
               plotOutput("newPlot"),
-              plotOutput("plot1") %>% 
-                withSpinner(color = boastPalette[1]),
+              # plotOutput("plot1") %>%
+              #   withSpinner(color = boastPalette[1]),
               ## Text for graph
               ### "The points show a sample of 1000 people from the
               ### population. All are tested for the disease, and the
               ### results are displayed by the size and color of dot."
               br(),
               textOutput("result"),
+              p("descriptive paragraph goes here")
             )
           ),
           checkboxInput(
@@ -275,7 +285,7 @@ server <- function(input, output, session) {
   # if(connection$status != 200){
   #   warning(paste(connection$status, "\nTry checking your auth token."))
   # }
-  
+
   ## Info button ----
   observeEvent(
     eventExpr = input$info,
@@ -288,7 +298,7 @@ server <- function(input, output, session) {
         type = "info"
       )
   })
-  
+
   ## Go to prereq's button ----
   observeEvent(
     eventExpr = input$goPrereq,
@@ -319,44 +329,67 @@ server <- function(input, output, session) {
   f_neg = 0
   f_pos = 0
 
-  
+
 
   #Generate new sample, changes who has the disease
   pick <- reactive({
-    input$new
+    input$newSample
     rnorm(1000)
   })
-  
+
   ## Display and update challenge ----
-  
+
   ## Display sample answer ----
-  
+  sampleData <- reactiveVal(NULL)
+
   ## Create data ----
-  sampleData <- reactiveVal(
-    data.frame(
-      x = rep(1:40, each = 25),
-      y = rep(1:25, times = 40)
-    )
-  )
   ### Sample size is fixed at 1000
   ### Two stage approach
   #### Stage 1: Use prevalence info for who does/doesn't have disease
   #### Stage 2: use sensitivity & specificity for FP, FN, TP, TN
-  
+  observeEvent(
+    eventExpr = input$newSample,
+    handlerExpr = {
+      tempData <- baseData
+      tempData$probDisease <- runif(1000, min = 0, max = 1)
+      tempData$probTest <- runif(1000, min = 0, max = 1)
+      tempData <- tempData %>%
+        mutate(
+          hasDisease = ifelse(
+            test = probDisease <= input$prevalence/1000,
+            yes = "Disease",
+            no = "No"
+          )
+        ) %>%
+        mutate(
+          status = case_when(
+            hasDisease == "Disease" & probTest <= input$sensitivity ~ "True Positive",
+            hasDisease == "Disease" & probTest > input$sensitivity ~ "False Negative",
+            hasDisease == "No" & probTest <= input$specificity ~ "True Negative",
+            hasDisease == "No" & probTest > input$specificity ~ "False Positive",
+            TRUE ~ "error"
+          )
+        )
+      sampleData(tempData)
+    },
+    ignoreNULL = TRUE,
+    ignoreInit = TRUE
+  )
+
   ## Display sample plot ----
   output$newPlot <- renderPlot(
     expr = {
       validate(
         need(
-          expr = !is.null(sampleData()$x),
+          expr = !is.null(sampleData()$status),
           message = "Click on Generate New Sample to create a plot"
         )
       )
       ggplot(
         data = sampleData(),
-        mapping = aes(x = x, y = y)
-      ) + 
-        geom_point(color = boastPalette[7], size = 1) +
+        mapping = aes(x = x, y = y, color = status, shape = status)
+      ) +
+        geom_point(size = 3) +
         theme_void() +
         theme(
           text = element_text(size = 18),
@@ -364,15 +397,35 @@ server <- function(input, output, session) {
         ) +
         labs(
           title = "Sample of 1000 People from the Population"
+        ) +
+        guides(
+          color = guide_legend(title = NULL, nrow = 2),
+          shape = guide_legend(title = NULL, nrow = 2)
+        ) +
+        scale_color_manual(
+          values = c(
+            "True Positive" = psuPalette[3],
+            "False Negative" = psuPalette[2],
+            "True Negative" = psuPalette[5],
+            "False Positive" = psuPalette[1]
+          )
+        ) +
+        scale_shape_manual(
+          values = c(
+            "True Positive" = 17,
+            "False Negative" = 16,
+            "True Negative" = 18,
+            "False Positive" = 15
+          )
         )
     },
     alt = "The points show a sample of 1000 people from the population. All are
     tested for the disease, and the results are displayed by the shape and color
     of dot."
   )
-  
+
   ## Display sample results ----
-  
+
   ## Theoretical results ----
   output$calculation <- renderUI({
     if (input$theoryCalc) {
@@ -383,13 +436,13 @@ server <- function(input, output, session) {
             {Sensitivity * Prevalence + (1 - Specificity) * (1 - Prevalence)} \\\\
             &= \\frac{%.3f * %.3f} {%.3f * %.3f + (1 - %.3f) * (1 - %.3f)} \\\\
             &= %.3f\\end{align}\\]",
-          input$sens,
-          input$infect/1000,
-          input$sens,
-          input$infect/1000,
-          input$spec,
-          input$infect/1000,
-          (input$sens * (input$infect/1000)) / ((input$sens * (input$infect/1000)) + ((1 - input$spec) * (1 - (input$infect/1000))))
+          input$sensitivity,
+          input$prevalence/1000,
+          input$sensitivity,
+          input$prevalence/1000,
+          input$specificity,
+          input$prevalence/1000,
+          (input$sensitivity * (input$prevalence/1000)) / ((input$sensitivity * (input$prevalence/1000)) + ((1 - input$specificity) * (1 - (input$prevalence/1000))))
         )
       )
     } else {
@@ -418,9 +471,9 @@ server <- function(input, output, session) {
 
     for (i in c(1:40)) {
       for (j in c(1:25)) {
-        if (pickdata[k] > qnorm(1 - (input$infect / 1000))) {
+        if (pickdata[k] > qnorm(1 - (input$prevalence / 1000))) {
           #Assign disease
-          if (test[k] > qnorm(1 - input$sens)) {
+          if (test[k] > qnorm(1 - input$sensitivity)) {
             #Assign test result if they have disease
             points(i, j, pch = 21, col = boastPalette[8], bg = psuPalette[8], cex = 1.75)
             t_pos <<- t_pos + 1
@@ -430,7 +483,7 @@ server <- function(input, output, session) {
             f_neg <<- f_neg + 1
           }
         } else {
-          if (test[k] > qnorm(input$spec)) {
+          if (test[k] > qnorm(input$specificity)) {
             #Assign test result if they don't have the disease
             points(i, j, pch = 19, col = boastPalette[1], cex = 1.75)
             f_pos <<- f_pos + 1
@@ -536,7 +589,7 @@ server <- function(input, output, session) {
 
   ####v means if the user view the sample answer of not, it displays as the last object of the response####
   v<<-FALSE
-  # observeEvent(input$infect | input$spec | input$sens | input$ques | input$show_ans | input$show_ans,{
+  # observeEvent(input$prevalence | input$specificity | input$sensitivity | input$ques | input$show_ans | input$show_ans,{
   #   statement <- rlocker::createStatement(
   #     list(
   #       verb = list(
@@ -549,7 +602,7 @@ server <- function(input, output, session) {
   #       ),
   #       result = list(
   #         success = NA,
-  #         response = paste(input$infect, input$spec, input$sens, v)
+  #         response = paste(input$prevalence, input$specificity, input$sensitivity, v)
   #       )
   #     )
   #   )
