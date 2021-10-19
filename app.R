@@ -4,7 +4,6 @@ library(shinydashboard)
 library(shinyBS)
 library(shinyWidgets)
 library(dplyr)
-library(shinycssloaders) # Is this actually necessary?
 library(boastUtils)
 library(ggplot2)
 
@@ -155,14 +154,15 @@ ui <- list(
                 textOutput("question"),
                 br(),
                 bsButton(
-                  inputId = "show_ans",
+                  inputId = "showAnswer",
                   label = "Show Sample Answer",
-                  size = "large"
+                  size = "large",
+                  type = "toggle"
                 ),
-                textOutput("sample_ans"),
+                textOutput("sampleAnswer"),
                 br(),
                 bsButton(
-                  inputId = "ques",
+                  inputId = "newQuestion",
                   label = "New Challenge",
                   size = "large"
                 ),
@@ -177,19 +177,19 @@ ui <- list(
                   value = 5
                 ),
                 sliderInput(
-                  inputId = "specificity",
-                  label = "Specificity",
-                  min = 0.5,
-                  max = 0.999,
-                  value = 0.99,
-                  step = 0.001
-                ),
-                sliderInput(
                   inputId = "sensitivity",
                   label = "Sensitivity",
                   min = 0.5,
                   max = 0.999,
                   value = 0.995,
+                  step = 0.001
+                ),
+                sliderInput(
+                  inputId = "specificity",
+                  label = "Specificity",
+                  min = 0.5,
+                  max = 0.999,
+                  value = 0.99,
                   step = 0.001
                 )
               )
@@ -215,8 +215,7 @@ ui <- list(
               ### population. All are tested for the disease, and the
               ### results are displayed by the size and color of dot."
               br(),
-              textOutput("result"),
-              p("descriptive paragraph goes here")
+              uiOutput("sampleResults")
             )
           ),
           checkboxInput(
@@ -285,6 +284,11 @@ server <- function(input, output, session) {
   # if(connection$status != 200){
   #   warning(paste(connection$status, "\nTry checking your auth token."))
   # }
+  
+  ## Define user variables ----
+  sampleData <- reactiveVal(NULL)
+  currentQID <- reactiveVal(sample.int(n = nrow(questionBank), size = 1))
+  
 
   ## Info button ----
   observeEvent(
@@ -324,24 +328,56 @@ server <- function(input, output, session) {
   )
 
   #Initialize the counts at 0
-  t_neg = 0
-  t_pos = 0
-  f_neg = 0
-  f_pos = 0
+  # t_neg = 0
+  # t_pos = 0
+  # f_neg = 0
+  # f_pos = 0
 
 
 
   #Generate new sample, changes who has the disease
-  pick <- reactive({
-    input$newSample
-    rnorm(1000)
-  })
+  # pick <- reactive({
+  #   input$newSample
+  #   rnorm(1000)
+  # })
 
   ## Display and update challenge ----
+  output$question <- renderText({
+    questionBank$question[currentQID()]
+    })
+  
+  observeEvent(
+    eventExpr = input$newQuestion,
+    handlerExpr = {
+      currentQID(sample.int(n = nrow(questionBank), size = 1))
+    },
+    ignoreNULL = TRUE,
+    ignoreInit = TRUE
+  )
 
   ## Display sample answer ----
-  sampleData <- reactiveVal(NULL)
-
+  observeEvent(
+    eventExpr = input$showAnswer, 
+    handlerExpr = {
+      if (!input$showAnswer) {
+        output$sampleAnswer <- NULL
+        updateButton(
+          session = session,
+          inputId = "showAnswer",
+          label = "Show Sample Answer"
+        )
+        # v <<- FALSE
+      } else {
+        updateButton(
+          session = session, 
+          inputId = "showAnswer",
+          label = "Hide Sample Answer"
+        )
+        output$sampleAnswer <- renderText(questionBank$sampleAnswer[currentQID()])
+        # v <<- TRUE
+      }
+    })
+  
   ## Create data ----
   ### Sample size is fixed at 1000
   ### Two stage approach
@@ -425,6 +461,20 @@ server <- function(input, output, session) {
   )
 
   ## Display sample results ----
+  output$sampleResults <- renderUI({
+    if (is.null(sampleData()$status)) {
+      NULL
+    } else {
+      freqs <- table(sampleData()$status)
+      freqs[is.na(freqs)] <- 0
+      p("There were", freqs["False Positive"] + freqs["True Positive"], "positive
+      test results, of which ", freqs["True Positive"], "people actually had the
+      disease. Based upon this sample, the estimated probability of having the
+      disease given a postivie test result is", paste0(round(
+        freqs["True Positive"] / (freqs["False Positive"] + freqs["True Positive"]),
+        digits = 3) * 100, "%."))
+    }
+  })
 
   ## Theoretical results ----
   output$calculation <- renderUI({
@@ -450,131 +500,112 @@ server <- function(input, output, session) {
     }
   })
 
-  ## The main display ----
-  output$plot1 <- renderPlot({
-    par(mar = c(0.1,0.1,1,0.1))
+  # ## The main display ----
+  # output$plot1 <- renderPlot({
+  #   par(mar = c(0.1,0.1,1,0.1))
+  # 
+  #   #Draw an empty plot with no outside box or axes
+  #   plot(x = NULL, y = NULL,
+  #        xlim = c(0, 43),
+  #        ylim = c(-5, 25),
+  #        xaxt="n",
+  #        yaxt="n",
+  #        xlab = "", ylab = "", main = "Sample of 1000 People from this Population",
+  #        bty = "n")
+  #   #Initialize the iterative variable. This will be the index to access in our lists.
+  #   k = 1
+  #   #Generate two lists: pickdata is a list that determines whether each individual has the disease, while test determines
+  #   #test result, based on whether or not they have the disease
+  #   pickdata <- pick()
+  #   test<- rnorm(1000)
+  # 
+  #   for (i in c(1:40)) {
+  #     for (j in c(1:25)) {
+  #       if (pickdata[k] > qnorm(1 - (input$prevalence / 1000))) {
+  #         #Assign disease
+  #         if (test[k] > qnorm(1 - input$sensitivity)) {
+  #           #Assign test result if they have disease
+  #           points(i, j, pch = 21, col = boastPalette[8], bg = psuPalette[8], cex = 1.75)
+  #           t_pos <<- t_pos + 1
+  #         } else {
+  #           #SHow false negative
+  #           points(i, j, pch = 19, col = psuPalette[2], cex = 1.75)
+  #           f_neg <<- f_neg + 1
+  #         }
+  #       } else {
+  #         if (test[k] > qnorm(input$specificity)) {
+  #           #Assign test result if they don't have the disease
+  #           points(i, j, pch = 19, col = boastPalette[1], cex = 1.75)
+  #           f_pos <<- f_pos + 1
+  #         } else {
+  #           points(i, j, pch = 19, col = boastPalette[7], cex = 0.75)
+  #           t_neg <<- t_neg + 1
+  #         }
+  #       }
+  #       k = k + 1
+  #     }
+  #   }
+  # 
+  #   legend(x = "bottom",
+  #          legend = c(paste0("True Negative (", t_neg, ")"),
+  #                     paste0("True Positive (", t_pos, ")"),
+  #                     paste0("False Negative (", f_neg, ")"),
+  #                     paste0("False Positive (", f_pos, ")")),
+  #          horiz = FALSE,
+  #          bty = "n",
+  #          pch = 21,
+  #          col = c(boastPalette[7], boastPalette[1], psuPalette[2], boastPalette[1]),
+  #          pt.cex = c(0.75, 1.75, 1.75, 1.75),
+  #          pt.bg = c(boastPalette[7], psuPalette[8], psuPalette[2], boastPalette[1]),
+  #          ncol = 2)
+  # 
+  #   t__pos = t_pos
+  #   f__pos = f_pos
+  # 
+  #   #Test result message with displays for 0 and 1 positive result
+  #   output$result <- renderText({
+  #     if ((t_pos + f_pos) == 1) {
+  #       sprintf("There was 1 positive result, of which %s actually had the disease.
+  #               This gives a sample estimate of a %2.f %% chance of actually having the disease if one tests positive for it.",
+  #               t__pos, ((t__pos / (t__pos + f__pos)) * 100))
+  #     } else if ((t__pos + f__pos) == 0) {
+  #       sprintf("There were 0 positive results.")
+  #     } else {
+  #       sprintf("There were %s positive results, of which %s actually had the disease.
+  #               This gives a sample estimate of a %2.f %% chance of actually having the disease if one tests positive for it.",
+  #               t__pos + f__pos, t__pos, ((t__pos / (t__pos + f__pos)) * 100))
+  #     }
+  #   })
+  # 
+  #   #Reset values for all possible test results
+  #   t_neg <<- 0
+  #   t_pos <<- 0
+  #   f_neg <<- 0
+  #   f_pos <<- 0
+  # 
+  # })
 
-    #Draw an empty plot with no outside box or axes
-    plot(x = NULL, y = NULL,
-         xlim = c(0, 43),
-         ylim = c(-5, 25),
-         xaxt="n",
-         yaxt="n",
-         xlab = "", ylab = "", main = "Sample of 1000 People from this Population",
-         bty = "n")
-    #Initialize the iterative variable. This will be the index to access in our lists.
-    k = 1
-    #Generate two lists: pickdata is a list that determines whether each individual has the disease, while test determines
-    #test result, based on whether or not they have the disease
-    pickdata <- pick()
-    test<- rnorm(1000)
-
-    for (i in c(1:40)) {
-      for (j in c(1:25)) {
-        if (pickdata[k] > qnorm(1 - (input$prevalence / 1000))) {
-          #Assign disease
-          if (test[k] > qnorm(1 - input$sensitivity)) {
-            #Assign test result if they have disease
-            points(i, j, pch = 21, col = boastPalette[8], bg = psuPalette[8], cex = 1.75)
-            t_pos <<- t_pos + 1
-          } else {
-            #SHow false negative
-            points(i, j, pch = 19, col = psuPalette[2], cex = 1.75)
-            f_neg <<- f_neg + 1
-          }
-        } else {
-          if (test[k] > qnorm(input$specificity)) {
-            #Assign test result if they don't have the disease
-            points(i, j, pch = 19, col = boastPalette[1], cex = 1.75)
-            f_pos <<- f_pos + 1
-          } else {
-            points(i, j, pch = 19, col = boastPalette[7], cex = 0.75)
-            t_neg <<- t_neg + 1
-          }
-        }
-        k = k + 1
-      }
-    }
-
-    legend(x = "bottom",
-           legend = c(paste0("True Negative (", t_neg, ")"),
-                      paste0("True Positive (", t_pos, ")"),
-                      paste0("False Negative (", f_neg, ")"),
-                      paste0("False Positive (", f_pos, ")")),
-           horiz = FALSE,
-           bty = "n",
-           pch = 21,
-           col = c(boastPalette[7], boastPalette[1], psuPalette[2], boastPalette[1]),
-           pt.cex = c(0.75, 1.75, 1.75, 1.75),
-           pt.bg = c(boastPalette[7], psuPalette[8], psuPalette[2], boastPalette[1]),
-           ncol = 2)
-
-    t__pos = t_pos
-    f__pos = f_pos
-
-    #Test result message with displays for 0 and 1 positive result
-    output$result <- renderText({
-      if ((t_pos + f_pos) == 1) {
-        sprintf("There was 1 positive result, of which %s actually had the disease.
-                This gives a sample estimate of a %2.f %% chance of actually having the disease if one tests positive for it.",
-                t__pos, ((t__pos / (t__pos + f__pos)) * 100))
-      } else if ((t__pos + f__pos) == 0) {
-        sprintf("There were 0 positive results.")
-      } else {
-        sprintf("There were %s positive results, of which %s actually had the disease.
-                This gives a sample estimate of a %2.f %% chance of actually having the disease if one tests positive for it.",
-                t__pos + f__pos, t__pos, ((t__pos / (t__pos + f__pos)) * 100))
-      }
-    })
-
-    #Reset values for all possible test results
-    t_neg <<- 0
-    t_pos <<- 0
-    f_neg <<- 0
-    f_pos <<- 0
-
-  })
-
-  numbers <- reactiveValues(question=c())
-
-  num_qs <- length(questionBank$question)
-
-  numbers$question = 1
-
-  output$question <- renderText(questionBank[numbers$question, 2])
-
-  counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
-
-  observeEvent(input$show_ans, {
-    counter$countervalue <- counter$countervalue + 1
-    if ((counter$countervalue %% 2) == 0) {
-      output$sample_ans <- renderText("")
-      updateButton(session=session, inputId = "show_ans", label = "Show Sample Answer")
-      v<<-FALSE
-    }
-    else {
-      updateButton(session=session, inputId = "show_ans", label = "Hide Sample Answer")
-      output$sample_ans <- renderText(questionBank[numbers$question, 3])
-      v<<-TRUE
-    }
-  })
+  # numbers <- reactiveValues(question=c())
+  # 
+  # num_qs <- length(questionBank$question)
+  # 
+  # numbers$question = 1
+  # 
+  # counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
 
   ## Challenges ----
 
-  observeEvent(input$ques, {
+  # observeEvent(input$ques, {
+  # 
+  #   observe({
+  #     numbers$question=sample(1:num_qs,1)
+  #   })
+  # 
+  #   counter$countervalue <- 0
+  #   output$sampleAnswer <- renderText("")
+  # })
 
-    observe({
-      numbers$question=sample(1:num_qs,1)
-    })
-
-    counter$countervalue <- 0
-    output$sample_ans <- renderText("")
-  })
-
-  output$mathTest <- renderUI({
-    "\\[\\begin{align*}g(y) &= \\frac{test}{case} \\\\&= works\\end{align*}\\]"
-  })
-
+  
   # ####add rlocker statement generated
   # # Gets current page address from the current session
   # getCurrentAddress <- function(session){
@@ -588,8 +619,8 @@ server <- function(input, output, session) {
   # }
 
   ####v means if the user view the sample answer of not, it displays as the last object of the response####
-  v<<-FALSE
-  # observeEvent(input$prevalence | input$specificity | input$sensitivity | input$ques | input$show_ans | input$show_ans,{
+  # v<<-FALSE
+  # observeEvent(input$prevalence | input$specificity | input$sensitivity | input$ques | input$showAnswer | input$showAnswer,{
   #   statement <- rlocker::createStatement(
   #     list(
   #       verb = list(
