@@ -271,20 +271,7 @@ ui <- list(
 
 # Define server logic ----
 server <- function(input, output, session) {
-  ## Set up Rlocker
-  # connection <- rlocker::connect(session, list(
-  #   base_url = "https://learning-locker.stat.vmhost.psu.edu/",
-  #   auth = "Basic ZDQ2OTNhZWZhN2Q0ODRhYTU4OTFmOTlhNWE1YzBkMjQxMjFmMGZiZjo4N2IwYzc3Mjc1MzU3MWZkMzc1ZDliY2YzOTNjMGZiNzcxOThiYWU2",
-  #   agent = rlocker::createAgent()
-  # ))
-  #
-  # currentUser <-
-  #   connection$agent
-  #
-  # if(connection$status != 200){
-  #   warning(paste(connection$status, "\nTry checking your auth token."))
-  # }
-  
+
   ## Define user variables ----
   sampleData <- reactiveVal(NULL)
   currentQID <- reactiveVal(sample.int(n = nrow(questionBank), size = 1))
@@ -333,8 +320,6 @@ server <- function(input, output, session) {
   # f_neg = 0
   # f_pos = 0
 
-
-
   #Generate new sample, changes who has the disease
   # pick <- reactive({
   #   input$newSample
@@ -343,8 +328,20 @@ server <- function(input, output, session) {
 
   ## Display and update challenge ----
   output$question <- renderText({
-    questionBank$question[currentQID()]
-    })
+    currentChallenge <- questionBank$question[currentQID()]
+    
+    stmt <- boastUtils::generateStatement(
+      session,
+      object = "challenge",
+      verb = "experienced",
+      description = "A new challenge has been generated.",
+      response = currentChallenge
+    )
+    
+    boastUtils::storeStatement(session, stmt)
+    
+    currentChallenge
+  })
   
   observeEvent(
     eventExpr = input$newQuestion,
@@ -366,15 +363,25 @@ server <- function(input, output, session) {
           inputId = "showAnswer",
           label = "Show Sample Answer"
         )
-        # v <<- FALSE
       } else {
         updateButton(
           session = session, 
           inputId = "showAnswer",
           label = "Hide Sample Answer"
         )
-        output$sampleAnswer <- renderText(questionBank$sampleAnswer[currentQID()])
-        # v <<- TRUE
+        
+        sampleAnswer <- questionBank$sampleAnswer[currentQID()]
+        output$sampleAnswer <- renderText(sampleAnswer)
+        
+        stmt <- boastUtils::generateStatement(
+          session,
+          object = "showAnswer",
+          verb = "experienced",
+          description = "The answer has been revealed.",
+          response = sampleAnswer
+        )
+        
+        boastUtils::storeStatement(session, stmt)
       }
     })
   
@@ -467,12 +474,25 @@ server <- function(input, output, session) {
     } else {
       freqs <- table(sampleData()$status)
       freqs[is.na(freqs)] <- 0
-      p("There were", freqs["False Positive"] + freqs["True Positive"], "positive
+      
+      sampleResults <- paste("There were", freqs["False Positive"] + freqs["True Positive"], "positive
       test results, of which ", freqs["True Positive"], "people actually had the
       disease. Based upon this sample, the estimated probability of having the
       disease given a postivie test result is", paste0(round(
         freqs["True Positive"] / (freqs["False Positive"] + freqs["True Positive"]),
         digits = 3) * 100, "%."))
+      
+      stmt <- boastUtils::generateStatement(
+        session,
+        object = "sampleResults",
+        verb = "experienced",
+        description = "A new sample has been generated.",
+        response = sampleResults
+      )
+      
+      boastUtils::storeStatement(session, stmt)
+      
+      p(sampleResults)
     }
   })
 
@@ -592,57 +612,6 @@ server <- function(input, output, session) {
   # numbers$question = 1
   # 
   # counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
-
-  ## Challenges ----
-
-  # observeEvent(input$ques, {
-  # 
-  #   observe({
-  #     numbers$question=sample(1:num_qs,1)
-  #   })
-  # 
-  #   counter$countervalue <- 0
-  #   output$sampleAnswer <- renderText("")
-  # })
-
-  
-  # ####add rlocker statement generated
-  # # Gets current page address from the current session
-  # getCurrentAddress <- function(session){
-  #   return(paste0(
-  #     session$clientData$url_protocol, "//",
-  #     session$clientData$url_hostname,
-  #     session$clientData$url_pathname, ":",
-  #     session$clientData$url_port,
-  #     session$clientData$url_search
-  #   ))
-  # }
-
-  ####v means if the user view the sample answer of not, it displays as the last object of the response####
-  # v<<-FALSE
-  # observeEvent(input$prevalence | input$specificity | input$sensitivity | input$ques | input$showAnswer | input$showAnswer,{
-  #   statement <- rlocker::createStatement(
-  #     list(
-  #       verb = list(
-  #         display = "interacted"
-  #       ),
-  #       object = list(
-  #         id = paste0(getCurrentAddress(session), "#", numbers$question),
-  #         name = paste('Question', numbers$question),
-  #         description = questionBank[numbers$question, 2]
-  #       ),
-  #       result = list(
-  #         success = NA,
-  #         response = paste(input$prevalence, input$specificity, input$sensitivity, v)
-  #       )
-  #     )
-  #   )
-  #   # Store statement in locker and return status
-  #   status <- rlocker::store(session, statement)
-  #
-  #   print(statement) # remove me
-  #   print(status) # remove me
-  # })
 }
 
 # Boast App Call ----
