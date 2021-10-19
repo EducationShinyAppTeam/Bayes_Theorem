@@ -347,6 +347,14 @@ server <- function(input, output, session) {
     eventExpr = input$newQuestion,
     handlerExpr = {
       currentQID(sample.int(n = nrow(questionBank), size = 1))
+      ### Hide answer on new question ----
+      output$sampleAnswer <- NULL
+      updateButton(
+        session = session,
+        inputId = "showAnswer",
+        label = "Show Sample Answer",
+        value = FALSE
+      )
     },
     ignoreNULL = TRUE,
     ignoreInit = TRUE
