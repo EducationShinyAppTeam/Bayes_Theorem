@@ -89,7 +89,7 @@ ui <- list(
             boastUtils::citeApp(),
             br(),
             br(),
-            div(class = "updated", "Last Update: 10/15/2021 by NJH.")
+            div(class = "updated", "Last Update: 10/20/2021 by NJH.")
           )
         ),
         ### Prerequisites ----
@@ -98,31 +98,44 @@ ui <- list(
           withMathJax(),
           h2("Background of Bayes' Theorem"),
           br(),
-          p("For two events denoted \\(D\\) and \\(T\\), Bayes' Theorem relates
-            the probability of \\(D\\) occuring given that \\(T\\) occurred
-            (expressed as \\(P(D|T)\\)) to the probability that \\(T\\) occurs
-            given that we know \\(D\\) occurred (\\(P(T|D)\\)) through the formula:
-            \\[\\begin{align} P(D|T) &=\\frac{P(T|D)\\cdot P(D)}{P(T|D)\\cdot
-            P(D) + P(T|D^C)\\cdot P(D^C)} \\\\
-            &= \\frac{\\text{Sensitivity} \\cdot \\text{Prevalence}}
-            {\\left(\\text{Sensitivity}\\cdot\\text{Prevalence}\\right) +
-            \\left(1-\\text{Specificity}\\right)\\cdot
-            \\left(1-\\text{Prevalence}\\right)}\\end{align}\\]
-            where \\(D^C\\) is the complement of \\(D\\)."
-          ),
-          p("In the screening test example used in this application, we define:"),
+          p("Bayes's Theorem relates the probability of an event occurring (e.g.,
+            having a disease, called \\(D\\)) given we know some other piece of
+            information (e.g., having a positive test result, called \\(T\\)) to
+            the probability of having that other piece of information given the
+            event occurred. The first probability often gets expressed as 
+            \\(P(D|T)\\) while second probability is expressed as \\(P(T|D)\\)."),
+          p("Within a disease context, we express the relationship described by
+            Bayes' Theorem with the equation:
+            \\[\\overset{\\text{Positive}}{\\text{Predictive Value}} = 
+            \\frac{\\text{Sensitivity} \\cdot \\text{Prevalence}}
+            {\\left[\\text{Sensitivity}\\cdot\\text{Prevalence}\\right] +
+            \\left[\\left(1-\\text{Specificity}\\right)\\cdot
+            \\left(1-\\text{Prevalence}\\right)\\right]}\\]
+            More generally, we can express Bayes' Theorem as
+            \\[P(D|T) =\\frac{P(T|D)\\cdot P(D)}{\\left[P(T|D)\\cdot
+            P(D)\\right] + \\left[P(T|D^C)\\cdot P(D^C)\\right]}\\]
+            "),
+          p("Here are some useful terms and notations to be aware of:"),
           tags$ul(
-            tags$li("\\(D\\) to be the event that a person has the disease of
-                    interest"),
-            tags$li("\\(T\\) to be the event that a person tests positive for
-                    the disease of interest"),
-            tags$li("the probability of a person having the disease of interest,
-                    \\(P(D)\\), is prevalence of the disease"),
-            tags$li("the probability of a person testing positive given they have
-                    the disease of interest, \\(P(T|D)\\), is test's sensitivity"),
-            tags$li("the probability of a person testing negative when they do
-                    not have the disease of interest, \\(P(T^C|D^C)\\), is the
-                    test's specificity")
+            tags$li("We have two events of interest: whether a person has a
+                    particular disease, denoted \\(D\\), and whether they test
+                    positive for the disease, expressed as \\(T\\)."),
+            tags$li("We will expressing not having the disease as \\(D^C\\) and 
+                    getting a negative test result at \\(T^C\\)."),
+            tags$li(tags$strong("Positive Predictive Value"), "is the probability
+                    of a person having the disease given that they test positive,
+                    (i.e., \\(P(D|T)\\))."),
+            tags$li("The", tags$strong("Prevalence"), "of the disease relates to
+                    the probability that randomly selected person has the disease
+                    (i.e., \\(P(D)\\))."),
+            tags$li("A test's", tags$strong("Sensitivity"), "refers to the test's
+                    ability to correctly detect the disease (a positive test
+                    result) when the person does in fact have the disease. We
+                    express this value as \\(P(T|D)\\)."),
+            tags$li("A test's", tags$strong("Specificity"), "refers to the test's
+                    ability to correctly say that a person doesn't have the 
+                    disease (a negative test result) when they truly don't have
+                    the disease. We express this value as \\(P(T^C|D^C)\\).")
           ),
           br(),
           div(style = "text-align: center;",
@@ -207,13 +220,8 @@ ui <- list(
                 )
               ),
               br(),
-              plotOutput("newPlot"),
-              # plotOutput("plot1") %>%
-              #   withSpinner(color = boastPalette[1]),
-              ## Text for graph
-              ### "The points show a sample of 1000 people from the
-              ### population. All are tested for the disease, and the
-              ### results are displayed by the size and color of dot."
+              plotOutput("graphDisplay"),
+              DT::dataTableOutput("resultTable"),
               br(),
               uiOutput("sampleResults")
             )
@@ -221,7 +229,7 @@ ui <- list(
           checkboxInput(
             inputId = "theoryCalc",
             label = "Show Theoretical Result",
-            value = TRUE
+            value = FALSE
           ),
           uiOutput('calculation')
         ),
@@ -421,6 +429,7 @@ server <- function(input, output, session) {
             TRUE ~ "error"
           )
         )
+      tempData$status <- as.factor(tempData$status)
       sampleData(tempData)
     },
     ignoreNULL = TRUE,
@@ -428,7 +437,7 @@ server <- function(input, output, session) {
   )
 
   ## Display sample plot ----
-  output$newPlot <- renderPlot(
+  output$graphDisplay <- renderPlot(
     expr = {
       validate(
         need(
@@ -455,9 +464,9 @@ server <- function(input, output, session) {
         ) +
         scale_color_manual(
           values = c(
-            "True Positive" = psuPalette[3],
+            "True Positive" = boastPalette[3],
             "False Negative" = psuPalette[2],
-            "True Negative" = psuPalette[5],
+            "True Negative" = "#c1c1c1",
             "False Positive" = psuPalette[1]
           )
         ) +
@@ -474,6 +483,66 @@ server <- function(input, output, session) {
     tested for the disease, and the results are displayed by the shape and color
     of dot."
   )
+  
+  ## Display results in table ----
+  output$resultTable <- DT::renderDataTable(
+    expr = {
+      if (is.null(sampleData()$status)) {
+        data.frame(
+          `Have Disease` = c("True Positive", "False Negative", ""),
+          `Does Not` = c("False Postive", "True Negative", ""),
+          `totals` = c("", "", ""),
+          row.names = c("Positive Test", "Negative Test", "totals")
+        )
+      } else {
+        freqs <- table(sampleData()$status)
+        if (length(names(freqs)) < 4) {
+          missing <- setdiff(
+            x = c("False Positive", "True Positive", "True Negative", "False Negative"),
+            y = names(freqs)
+          )
+          for (i in 1:length(missing)) {
+            freqs[missing[i]] <- 0
+          }
+        }
+        freqs[is.na(freqs)] <- 0
+        data.frame(
+          "Has Disease" = c(
+            freqs["True Positive"],
+            freqs["False Negative"],
+            freqs["True Positive"] + freqs["False Negative"]
+          ),
+          "Does Not" = c(
+            freqs["False Positive"],
+            freqs["True Negative"],
+            freqs["False Positive"] + freqs["True Negative"]
+          ),
+          "totals" = c(
+            freqs["True Positive"] + freqs["False Positive"],
+            freqs["False Negative"] + freqs["True Negative"],
+            freqs["True Positive"] + freqs["False Negative"] +
+              freqs["False Positive"] + freqs["True Negative"]
+          ),
+          row.names = c("Positive Test", "Negative Test", "totals")
+        )
+      }
+    },
+    caption = "Sample Results",
+    style = "bootstrap4",
+    rownames = TRUE,
+    options = list(
+      responsive = TRUE,
+      scrollX = TRUE,
+      ordering = FALSE,
+      paging = FALSE,
+      lengthChange = FALSE,
+      searching = FALSE,
+      info = FALSE,
+      columnDefs = list(
+        list(className = 'dt-center', targets = 1:3)
+      )
+    )
+  )
 
   ## Display sample results ----
   output$sampleResults <- renderUI({
@@ -486,9 +555,11 @@ server <- function(input, output, session) {
       sampleResults <- paste("There were", freqs["False Positive"] + freqs["True Positive"], "positive
       test results, of which ", freqs["True Positive"], "people actually had the
       disease. Based upon this sample, the estimated probability of having the
-      disease given a postivie test result is", paste0(round(
+      disease given a positive test result is", paste0(round(
         freqs["True Positive"] / (freqs["False Positive"] + freqs["True Positive"]),
         digits = 3) * 100, "%."))
+      
+      ## Add in a two by two table here.
       
       stmt <- boastUtils::generateStatement(
         session,
