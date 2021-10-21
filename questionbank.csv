@@ -1,19 +1,19 @@
-number,question,sample_ans,,blank_ans
-1,Adjust the sliders so that the probability of having the disease given a positive test result is exactly 50%.,"Set: Prevalence = 1, Specificity = 0.999, Sensitivity = 0.999.",,
-2,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 50%.,"Set: Prevalence = 3, Specificity = 0.997, Sensitivity = 0.999.",,
-3,Adjust the sliders so that the probability of having the disease given a positive test result is less than 50%.,"Set: Prevalence = 1, Specificity = 0.999, Sensitivity = 0.995.",,
-4,Adjust only the prevalence slider. How does this affect the probability of having the disease given a positive test result?,"As prevalence is increased, the probability also increases.",,
-5,Adjust only the sensitivity slider. How does this affect the probability of having the disease given a positive test result?,"As sensitivity is increased, the  probability also increases.",,
-6,Adjust only the specificity slider. How does this affect the probability of having the disease given a positive test result?,"As specificity is increased, the probability decreases.",,
-7,"If the disease is relatively rare, does sensitivity or specificity have a bigger effect on the probability of having the disease given a positive test result?",Specificity has a much bigger effect on the probability than sensitivity. Set prevalence to 1 and move the sliders to see this.,,
-8,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 60%.,"Set: Prevalence = 2, Specificity = 0.999, Sensitivity = 0.999.",,
-9,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 70%.,"Set: Prevalence = 3, Specificity = 0.999, Sensitivity = 0.999.",,
-10,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 80%.,"Set: Prevalence = 6, Specificity = 0.999, Sensitivity = 0.999.",,
-11,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 90%.,"Set: Prevalence = 12, Specificity = 0.999, Sensitivity = 0.999.",,
-12,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 95%.,"Set: Prevalence = 30, Specificity = 0.999, Sensitivity = 0.999.",,
-13,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 99%.,"Set: Prevalence = 100, Specificity = 0.999, Sensitivity = 0.999.",,
-14,Adjust the sliders so that the probability of having the disease given a positive test result is less than 40%.,"Set: Prevalence = 30, Specificity = 0.950, Sensitivity = 0.999.",,
-15,Adjust the sliders so that the probability of having the disease given a positive test result is less than 30%.,"Set: Prevalence = 30, Specificity = 0.925, Sensitivity = 0.999.",,
-16,Adjust the sliders so that the probability of having the disease given a positive test result is less than 20%.,"Set: Prevalence = 30, Specificity = 0.875, Sensitivity = 0.999.",,
-17,Adjust the sliders so that the probability of having the disease given a positive test result is less than 10%.,"Set: Prevalence = 30, Specificity = 0.700, Sensitivity = 0.999.",,
-18,Adjust the sliders so that the probability of having the disease given a positive test result is less than 5%.,"Set: Prevalence = 25, Specificity = 0.500, Sensitivity = 0.999.",,
+number,question,sampleAnswer
+1,Adjust the sliders so that the probability of having the disease given a positive test result is exactly 50%.,"Set: Prevalence = 1, Specificity = 0.999, Sensitivity = 0.999."
+2,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 50%.,"Set: Prevalence = 3, Specificity = 0.997, Sensitivity = 0.999."
+3,Adjust the sliders so that the probability of having the disease given a positive test result is less than 50%.,"Set: Prevalence = 1, Specificity = 0.999, Sensitivity = 0.995."
+4,Adjust only the prevalence slider. How does this affect the probability of having the disease given a positive test result?,"As prevalence is increased, the probability also increases."
+5,Adjust only the sensitivity slider. How does this affect the probability of having the disease given a positive test result?,"As sensitivity is increased, the  probability also increases."
+6,Adjust only the specificity slider. How does this affect the probability of having the disease given a positive test result?,"As specificity is increased, the probability decreases."
+7,"If the disease is relatively rare, does sensitivity or specificity have a bigger effect on the probability of having the disease given a positive test result?",Specificity has a much bigger effect on the probability than sensitivity. Set prevalence to 1 and move the sliders to see this.
+8,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 60%.,"Set: Prevalence = 2, Specificity = 0.999, Sensitivity = 0.999."
+9,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 70%.,"Set: Prevalence = 3, Specificity = 0.999, Sensitivity = 0.999."
+10,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 80%.,"Set: Prevalence = 6, Specificity = 0.999, Sensitivity = 0.999."
+11,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 90%.,"Set: Prevalence = 12, Specificity = 0.999, Sensitivity = 0.999."
+12,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 95%.,"Set: Prevalence = 30, Specificity = 0.999, Sensitivity = 0.999."
+13,Adjust the sliders so that the probability of having the disease given a positive test result is greater than 99%.,"Set: Prevalence = 100, Specificity = 0.999, Sensitivity = 0.999."
+14,Adjust the sliders so that the probability of having the disease given a positive test result is less than 40%.,"Set: Prevalence = 30, Specificity = 0.950, Sensitivity = 0.999."
+15,Adjust the sliders so that the probability of having the disease given a positive test result is less than 30%.,"Set: Prevalence = 30, Specificity = 0.925, Sensitivity = 0.999."
+16,Adjust the sliders so that the probability of having the disease given a positive test result is less than 20%.,"Set: Prevalence = 30, Specificity = 0.875, Sensitivity = 0.999."
+17,Adjust the sliders so that the probability of having the disease given a positive test result is less than 10%.,"Set: Prevalence = 30, Specificity = 0.700, Sensitivity = 0.999."
+18,Adjust the sliders so that the probability of having the disease given a positive test result is less than 5%.,"Set: Prevalence = 25, Specificity = 0.500, Sensitivity = 0.999."
