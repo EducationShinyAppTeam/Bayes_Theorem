@@ -102,11 +102,11 @@ ui <- list(
             having a disease, called \\(D\\)) given we know some other piece of
             information (e.g., having a positive test result, called \\(T\\)) to
             the probability of having that other piece of information given the
-            event occurred. The first probability often gets expressed as 
+            event occurred. The first probability often gets expressed as
             \\(P(D|T)\\) while second probability is expressed as \\(P(T|D)\\)."),
           p("Within a disease context, we express the relationship described by
             Bayes' Theorem with the equation:
-            \\[\\overset{\\text{Positive}}{\\text{Predictive Value}} = 
+            \\[\\overset{\\text{Positive}}{\\text{Predictive Value}} =
             \\frac{\\text{Sensitivity} \\cdot \\text{Prevalence}}
             {\\left[\\text{Sensitivity}\\cdot\\text{Prevalence}\\right] +
             \\left[\\left(1-\\text{Specificity}\\right)\\cdot
@@ -120,7 +120,7 @@ ui <- list(
             tags$li("We have two events of interest: whether a person has a
                     particular disease, denoted \\(D\\), and whether they test
                     positive for the disease, expressed as \\(T\\)."),
-            tags$li("We will expressing not having the disease as \\(D^C\\) and 
+            tags$li("We will expressing not having the disease as \\(D^C\\) and
                     getting a negative test result at \\(T^C\\)."),
             tags$li(tags$strong("Positive Predictive Value"), "is the probability
                     of a person having the disease given that they test positive,
@@ -133,7 +133,7 @@ ui <- list(
                     result) when the person does in fact have the disease. We
                     express this value as \\(P(T|D)\\)."),
             tags$li("A test's", tags$strong("Specificity"), "refers to the test's
-                    ability to correctly say that a person doesn't have the 
+                    ability to correctly say that a person doesn't have the
                     disease (a negative test result) when they truly don't have
                     the disease. We express this value as \\(P(T^C|D^C)\\).")
           ),
@@ -283,7 +283,7 @@ server <- function(input, output, session) {
   ## Define user variables ----
   sampleData <- reactiveVal(NULL)
   currentQID <- reactiveVal(sample.int(n = nrow(questionBank), size = 1))
-  
+
 
   ## Info button ----
   observeEvent(
@@ -337,7 +337,7 @@ server <- function(input, output, session) {
   ## Display and update challenge ----
   output$question <- renderText({
     currentChallenge <- questionBank$question[currentQID()]
-    
+
     stmt <- boastUtils::generateStatement(
       session,
       object = "challenge",
@@ -345,12 +345,12 @@ server <- function(input, output, session) {
       description = "A new challenge has been generated.",
       response = currentChallenge
     )
-    
+
     boastUtils::storeStatement(session, stmt)
-    
+
     currentChallenge
   })
-  
+
   observeEvent(
     eventExpr = input$newQuestion,
     handlerExpr = {
@@ -370,7 +370,7 @@ server <- function(input, output, session) {
 
   ## Display sample answer ----
   observeEvent(
-    eventExpr = input$showAnswer, 
+    eventExpr = input$showAnswer,
     handlerExpr = {
       if (!input$showAnswer) {
         output$sampleAnswer <- NULL
@@ -381,14 +381,14 @@ server <- function(input, output, session) {
         )
       } else {
         updateButton(
-          session = session, 
+          session = session,
           inputId = "showAnswer",
           label = "Hide Sample Answer"
         )
-        
+
         sampleAnswer <- questionBank$sampleAnswer[currentQID()]
         output$sampleAnswer <- renderText(sampleAnswer)
-        
+
         stmt <- boastUtils::generateStatement(
           session,
           object = "showAnswer",
@@ -396,11 +396,11 @@ server <- function(input, output, session) {
           description = "The answer has been revealed.",
           response = sampleAnswer
         )
-        
+
         boastUtils::storeStatement(session, stmt)
       }
     })
-  
+
   ## Create data ----
   ### Sample size is fixed at 1000
   ### Two stage approach
@@ -483,7 +483,7 @@ server <- function(input, output, session) {
     tested for the disease, and the results are displayed by the shape and color
     of dot."
   )
-  
+
   ## Display results in table ----
   output$resultTable <- DT::renderDataTable(
     expr = {
@@ -551,16 +551,16 @@ server <- function(input, output, session) {
     } else {
       freqs <- table(sampleData()$status)
       freqs[is.na(freqs)] <- 0
-      
+
       sampleResults <- paste("There were", freqs["False Positive"] + freqs["True Positive"], "positive
       test results, of which ", freqs["True Positive"], "people actually had the
       disease. Based upon this sample, the estimated probability of having the
       disease given a positive test result is", paste0(round(
         freqs["True Positive"] / (freqs["False Positive"] + freqs["True Positive"]),
         digits = 3) * 100, "%."))
-      
+
       ## Add in a two by two table here.
-      
+
       stmt <- boastUtils::generateStatement(
         session,
         object = "sampleResults",
@@ -568,9 +568,9 @@ server <- function(input, output, session) {
         description = "A new sample has been generated.",
         response = sampleResults
       )
-      
+
       boastUtils::storeStatement(session, stmt)
-      
+
       p(sampleResults)
     }
   })
@@ -602,7 +602,7 @@ server <- function(input, output, session) {
   # ## The main display ----
   # output$plot1 <- renderPlot({
   #   par(mar = c(0.1,0.1,1,0.1))
-  # 
+  #
   #   #Draw an empty plot with no outside box or axes
   #   plot(x = NULL, y = NULL,
   #        xlim = c(0, 43),
@@ -617,7 +617,7 @@ server <- function(input, output, session) {
   #   #test result, based on whether or not they have the disease
   #   pickdata <- pick()
   #   test<- rnorm(1000)
-  # 
+  #
   #   for (i in c(1:40)) {
   #     for (j in c(1:25)) {
   #       if (pickdata[k] > qnorm(1 - (input$prevalence / 1000))) {
@@ -644,7 +644,7 @@ server <- function(input, output, session) {
   #       k = k + 1
   #     }
   #   }
-  # 
+  #
   #   legend(x = "bottom",
   #          legend = c(paste0("True Negative (", t_neg, ")"),
   #                     paste0("True Positive (", t_pos, ")"),
@@ -657,10 +657,10 @@ server <- function(input, output, session) {
   #          pt.cex = c(0.75, 1.75, 1.75, 1.75),
   #          pt.bg = c(boastPalette[7], psuPalette[8], psuPalette[2], boastPalette[1]),
   #          ncol = 2)
-  # 
+  #
   #   t__pos = t_pos
   #   f__pos = f_pos
-  # 
+  #
   #   #Test result message with displays for 0 and 1 positive result
   #   output$result <- renderText({
   #     if ((t_pos + f_pos) == 1) {
@@ -675,21 +675,21 @@ server <- function(input, output, session) {
   #               t__pos + f__pos, t__pos, ((t__pos / (t__pos + f__pos)) * 100))
   #     }
   #   })
-  # 
+  #
   #   #Reset values for all possible test results
   #   t_neg <<- 0
   #   t_pos <<- 0
   #   f_neg <<- 0
   #   f_pos <<- 0
-  # 
+  #
   # })
 
   # numbers <- reactiveValues(question=c())
-  # 
+  #
   # num_qs <- length(questionBank$question)
-  # 
+  #
   # numbers$question = 1
-  # 
+  #
   # counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
 }
 
